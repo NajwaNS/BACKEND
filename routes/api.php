@@ -8,22 +8,17 @@ Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
-Route::get('/berita', [BeritaController::class, 'index']);
+Route::get('/news/search/{title}', [NewsController::class, 'search']);
 
-// Menampilkan semua berita (GET)
-Route::get('beritas', [BeritaController::class, 'index']); 
+Route::get('/news/category/{category}', [NewsController::class, 'getByCategory']);
 
-// Menampilkan berita berdasarkan ID (GET)
-Route::get('beritas/{id}', [BeritaController::class, 'show']);
+Route::get('/beritas', [BeritaController::class, 'index']); 
 
-// Menyimpan berita baru (POST)
-Route::post('beritas', [BeritaController::class, 'store']);
+Route::get('/beritas/{id}', [BeritaController::class, 'show']);
 
-// Memperbarui berita berdasarkan ID (PUT/PATCH)
-Route::put('beritas/{id}', [BeritaController::class, 'update']);
-// Atau bisa menggunakan PATCH jika hanya sebagian data yang diperbarui
-Route::patch('beritas/{id}', [BeritaController::class, 'update']);
+Route::post('/beritas', [BeritaController::class, 'store']);
 
-// Menghapus berita berdasarkan ID (DELETE)
-Route::delete('beritas/{id}', [BeritaController::class, 'destroy']);
+Route::put('/beritas/{id}', [BeritaController::class, 'update']);
+
+Route::delete('/beritas/{id}', [BeritaController::class, 'destroy']);
 

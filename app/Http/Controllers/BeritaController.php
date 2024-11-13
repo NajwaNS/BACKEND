@@ -2,106 +2,266 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\BeritaBerbahasa;
 use Illuminate\Http\Request;
+use App\Models\Berita;
+use Illuminate\Support\Facades\Validator;
 
 class BeritaController extends Controller
 {
+    
+
     public function index()
     {
-        // Mengambil semua berita dari database
         $beritas = Berita::all();
 
-        // Mengembalikan data ke view atau API response
-        return view('berita.index', compact('beritas')); // Jika menggunakan view
-        // return response()->json($beritas); // Jika menggunakan API JSON
+        if ($beritas->isEmpty()) {
+            return response()->json(['message' => 'No data found'], 404);
+        }
+
+        return response()->json([
+            'message' => 'Success Showing All Berita Data',
+            'data' => $beritas
+        ], 200);
     }
 
-    // 2. Store Method - Menyimpan data berita baru
+    /**
+     * Store a newly created resource in storage.
+     */
     public function store(Request $request)
     {
-        // Validasi input
-        $request->validate([
-            'title' => 'required|string|max:255',
-            'author' => 'required|string|max:255',
-            'description' => 'required|string',
-            'content' => 'required|string',
-            'url' => 'required|url',
-            'url_image' => 'nullable|url',
-            'published_at' => 'nullable|date',
-            'category' => 'required|string|max:255',
+        $validator = Validator::make($request->all(), [
+            'title' => 'required',
+            'author' => 'required',
+            'description' => 'required',
+            'content' => 'required',
+            'url' => 'required',
+            'url_image' => 'required',
+            'category' => 'required',
+            'published_at' => 'required'
         ]);
 
-        // Membuat dan menyimpan berita baru
-        $berita = new Berita();
-        $berita->title = $request->title;
-        $berita->author = $request->author;
-        $berita->description = $request->description;
-        $berita->content = $request->content;
-        $berita->url = $request->url;
-        $berita->url_image = $request->url_image;
-        $berita->published_at = $request->published_at;
-        $berita->category = $request->category;
-        $berita->save();
+        if ($validator->fails()) {
+            return response()->json([
+                'messagej' => 'Validation errors',
+                'errors' => $validator->errors()
+            ], 422);
+        }
 
-        // Mengembalikan response atau redirect setelah sukses
-        return redirect()->route('berita.index'); // Redirect ke halaman index
-        // return response()->json($berita, 201); // Jika menggunakan API JSON
+        $beritas = Berita::create($request->only(['title', 'author', 'description', 'content', 'url', 'url_image', 'category', 'published_at']));
+
+        $data = [
+            'message' => 'beritas is created successfully',
+            'data' => $request,
+        ];
+
+        return response()->json($data, 201);
     }
 
-    // 3. Show Method - Menampilkan data berita berdasarkan ID
-    public function show($id)
+    /**
+     * Display the specified resource.
+     */
+    public function show(string $id)
     {
-        // Mencari berita berdasarkan ID
-        $berita = Berita::findOrFail($id);
-
-        // Mengembalikan data ke view atau API response
-        return view('berita.show', compact('berita')); // Jika menggunakan view
-        // return response()->json($berita); // Jika menggunakan API JSON
+        $beritas = Berita::find($id);
+        if (!$beritas) {
+            return response()->json(['message' => 'Resource not found'], 404);
+        }
+        return response()->json(['message' => 'Get Detail Resource', 'data' => $beritas], 200);
     }
 
-    // 4. Update Method - Memperbarui data berita
-    public function update(Request $request, $id)
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(Request $request, string $id)
     {
-        // Validasi input
-        $request->validate([
-            'title' => 'required|string|max:255',
-            'author' => 'required|string|max:255',
-            'description' => 'required|string',
-            'content' => 'required|string',
-            'url' => 'required|url',
-            'url_image' => 'nullable|url',
-            'published_at' => 'nullable|date',
-            'category' => 'required|string|max:255',
-        ]);
+        $beritas = Berita::find($id);
 
-        // Mencari berita yang akan di-update
-        $berita = Berita::findOrFail($id);
-        $berita->title = $request->title;
-        $berita->author = $request->author;
-        $berita->description = $request->description;
-        $berita->content = $request->content;
-        $berita->url = $request->url;
-        $berita->url_image = $request->url_image;
-        $berita->published_at = $request->published_at;
-        $berita->category = $request->category;
-        $berita->save();
+    if ($beritas) {
+        
+        $input = [
+            'title' => $request->title ?? $beritas->title,
+            'author' => $request->author ?? $beritas->author,
+            'description' => $request->description ?? $beritas->description,
+            'content' => $request->content ?? $beritas->content,
+            'url' => $request->url ?? $beritas->url,
+            'url_image' => $request->url_image ?? $beritas->url_image,
+            'category' => $request->category ?? $beritas->category,
+            'published_at' => $request->published_at ?? $beritas->published_at,
+        ];
 
-        // Mengembalikan response atau redirect setelah sukses
-        return redirect()->route('berita.index'); // Redirect ke halaman index
-        // return response()->json($berita); // Jika menggunakan API JSON
+    // Update data Berita
+    $beritas->update($input);
+
+    $data = [
+        'message' => 'Berita is updated',
+        'data' => $beritas
+    ];
+
+    // mengembalikan data (json) dan kode 200
+    return response()->json($data, 200);
+    } else {
+        $data = [
+            'message' => 'Berita not found'
+        ];
+
+        return response()->json($data, 404);
     }
 
-    // 5. Destroy Method - Menghapus data berita berdasarkan ID
-    public function destroy($id)
-    {
-        // Mencari berita berdasarkan ID dan menghapusnya
-        $berita = Berita::findOrFail($id);
-        $berita->delete();
+    }
 
-        // Mengembalikan response atau redirect setelah sukses
-        return redirect()->route('berita.index'); // Redirect ke halaman index
-        // return response()->json(null, 204); // Jika menggunakan API JSON
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(string $id)
+    {
+        $beritas = Berita::find($id);
+
+    if ($beritas) {
+        // Hapus beritas tersebut
+        $beritas->delete();
+
+        $data = [
+            'message' => 'Berita is deleted'
+        ];
+
+        // Mengembalikan data (json) dan kode 200
+        return response()->json($data, 200);
+    } 
+    else {
+        $data = [
+            'message' => 'Berita not found'
+        ];
+
+        return response()->json($data, 404);}
+    }
+
+    public function search($title)
+    {
+        $beritas = Berita::where('title', 'like', "%$title%")->get();
+        if ($beritas->isEmpty()) {
+            return response()->json(['message' => 'Resource not found'], 404);
+        }
+        return response()->json(['message' => 'Get searched resource', 'data' => $beritas], 200);
+    }
+
+    public function getByCategory($category)
+    {
+        $beritas = Berita::where('category', $category)->get();
+        if ($beritas->isEmpty()) {
+            return response()->json(['message' => 'Resource not found'], 404);
+        }
+        return response()->json(['message' => 'Get category resource', 'total' => $beritas->count(), 'data' => $beritas], 200);
     }
 }
-}
+// class BeritaController extends Controller
+// {
+//     public function index()
+//     {
+//         // Mengambil semua berita dari database
+//         $beritas = Berita::all();
+
+//         // Mengembalikan data ke view atau API response
+//         return view('berita.index', compact('beritas')); // Jika menggunakan view
+//         // return response()->json($beritas); // Jika menggunakan API JSON
+//     }
+
+//     // 2. Store Method - Menyimpan data berita baru
+//     public function store(Request $request)
+//     {
+//         // Validasi input
+//         $request->validate([
+//             'title' => 'required|string|max:255',
+//             'author' => 'required|string|max:255',
+//             'description' => 'required|string',
+//             'content' => 'required|string',
+//             'url' => 'required|url',
+//             'url_image' => 'nullable|url',
+//             'published_at' => 'nullable|date',
+//             'category' => 'required|string|max:255',
+//         ]);
+
+//         // Membuat dan menyimpan berita baru
+//         $beritas = new Berita();
+//         $beritas->title = $request->title;
+//         $beritas->author = $request->author;
+//         $beritas->description = $request->description;
+//         $beritas->content = $request->content;
+//         $beritas->url = $request->url;
+//         $beritas->url_image = $request->url_image;
+//         $beritas->published_at = $request->published_at;
+//         $beritas->category = $request->category;
+//         $beritas->save();
+
+        
+//         return redirect()->route('berita.index'); 
+//     }
+
+    
+//     public function show($id)
+//     {
+//         $beritas = Berita::findOrFail($id);
+
+        
+//         return view('berita.show', compact('berita')); 
+        
+//     }
+
+    
+//     public function update(Request $request, $id)
+//     {
+//         // Validasi input
+//         $request->validate([
+//             'title' => 'required|string|max:255',
+//             'author' => 'required|string|max:255',
+//             'description' => 'required|string',
+//             'content' => 'required|string',
+//             'url' => 'required|url',
+//             'url_image' => 'nullable|url',
+//             'published_at' => 'nullable|date',
+//             'category' => 'required|string|max:255',
+//         ]);
+
+//         // Mencari berita yang akan di-update
+//         $beritas = Berita::findOrFail($id);
+//         $beritas->title = $request->title;
+//         $beritas->author = $request->author;
+//         $beritas->description = $request->description;
+//         $beritas->content = $request->content;
+//         $beritas->url = $request->url;
+//         $beritas->url_image = $request->url_image;
+//         $beritas->published_at = $request->published_at;
+//         $beritas->category = $request->category;
+//         $beritas->save();
+
+        
+//         return redirect()->route('berita.index'); 
+//     }
+
+    
+//     public function destroy($id)
+//     {
+       
+//         $beritas = Berita::findOrFail($id);
+//         $beritas->delete();
+
+//         return redirect()->route('berita.index'); 
+// }
+// }
+
+//     public function search($title)
+//     {
+//         $beritas = Berita::where('title', 'like', "%$title%")->get();
+//         if ($beritas->isEmpty()) {
+//             return response()->json(['message' => 'Resource not found'], 404);
+//         }
+//         return response()->json(['message' => 'Get searched resource', 'data' => $beritas], 200);
+//     }
+
+//     public function getByCategory($category)
+//     {
+//         $beritas = Berita::where('category', $category)->get();
+//         if ($beritas->isEmpty()) {
+//             return response()->json(['message' => 'Resource not found'], 404);
+//         }
+//         return response()->json(['message' => 'Get category resource', 'total' => $beritas->count(), 'data' => $beritas], 200);
+//     }
