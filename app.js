@@ -1,4 +1,4 @@
-const {index, store, update, destroy} = require("./FruitsController");
+const {index, store, update, destroy} = require("./fruitcontroller");
 
 const main =() => {
     index();
