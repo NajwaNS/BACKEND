@@ -1,12 +1,28 @@
 {
+<<<<<<< HEAD
   "name": "backendd",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
+=======
+  "name": "task-pertemuan-11",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon app.js"
+>>>>>>> d25278cd4d3cb34f2f87b29ac8dee281c4e5afe7
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
+<<<<<<< HEAD
   "description": ""
+=======
+  "description": "Task Pertemuan 11",
+  "dependencies": {
+    "express": "^4.21.2",
+    "nodemon": "^3.1.9"
+  }
+>>>>>>> d25278cd4d3cb34f2f87b29ac8dee281c4e5afe7
 }
